@@ -292,6 +292,12 @@ var defaultParams = {
   imageUrl: null,
   imageSize: null,
   timer: null,
+  
+  //| IMKCode Ext. Timer 
+  timeForConfirm: null,
+  timeForCancel: null,
+  //| -IMKCode Ext. Timer 
+  
   customClass: '',
   html: false,
   animation: true,
@@ -818,9 +824,39 @@ var openModal = function openModal() {
   var timer = $modal.getAttribute('data-timer');
 
   if (timer !== 'null' && timer !== '') {
-    $modal.timeout = setTimeout(function () {
-      swal.close();
-    }, timer);
+    //| IMKCode Ext. Timer
+    var timeForConfirm = $modal.getAttribute('data-timer-for-confirm') === 'true';
+    var timeForCancel = $modal.getAttribute('data-timer-for-cancel') === 'true';
+    if (timeForConfirm || timeForCancel)
+    {
+        var cancelButtonText = $cancelBtn.innerHTML;
+        var okButtonText = $okButton.innerHTML;
+        $modal.setAttribute('data-timer-delay', timer);
+        $modal.timeins = setInterval(function()
+        {
+            var _delay = parseInt($modal.getAttribute('data-timer-delay'), 10) - 1000;
+            $modal.setAttribute('data-timer-delay', _delay);
+            if (_delay <= 0)
+            {
+                clearInterval($modal.timeins);
+                if (timeForCancel){$cancelBtn.click();}
+                else if (timeForConfirm){$okButton.click();}
+                else {swal.close();}
+            }
+            else
+            {
+                if (timeForCancel){$cancelBtn.innerHTML = cancelButtonText +"("+ Math.ceil(_delay / 1000) +")";}
+                else if (timeForConfirm){$okButton.innerHTML = okButtonText +"("+ Math.ceil(_delay / 1000) +")";}
+            }
+        }, 1000);
+    }
+    else
+    {
+        $modal.timeout = setTimeout(function () {
+          swal.close();
+        }, timer);
+    }
+    //| -IMKCode Ext. Timer
   }
 };
 
@@ -1131,6 +1167,15 @@ var setParameters = function setParameters(params) {
    * Timer
    */
   modal.setAttribute('data-timer', params.timer);
+  
+  /*
+   * IMKCode Ext. Timer for Confirm
+   */
+  modal.setAttribute('data-timer-for-confirm', params.timeForConfirm);
+  /*
+   * IMKcode Ext. Timer for Cancel
+   */
+  modal.setAttribute('data-timer-for-cancel', params.timeForCancel);
 };
 
 exports['default'] = setParameters;
